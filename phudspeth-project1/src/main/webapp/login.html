@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Login to JC Industries</title>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+  <style>
+    .loginbox {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 50%;
+      top: 15em;
+      padding: 3em;
+      border: 0.01em solid black;
+      background-color: aliceblue;
+      text-align: center;
+    }
+
+    .emplog {
+      background: black;
+      color: white;
+      padding: 0px 0.5em;
+    }
+
+    .manlog {
+      background: grey;
+      color: black;
+      padding: 0px 0.5em;
+    }
+
+    .butcontain {
+      position: absolute;
+      display: flex;
+      top: 16em;
+      left: 24em;
+    }
+
+    .cont {
+      position: relative;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container cont">
+
+    <div class="row butcontain">
+      <p class="rounded-top emplog">Employee</p>
+      <p class="rounded-top manlog">Manager</p>
+    </div>
+    <div class="row loginbox col-lg-4 offset-lg-4">
+
+      <input type="text" placeholder="Username" id="empusername" name="username">
+      <input type="text" placeholder="Password" id="emppassword" name="password">
+      <button class="btn" id="loginbutton" name="loginbutton">Login as Employee</button>
+
+    </div>
+  </div>
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+  <!--<script type="text/javascript" src="login.js"></script>-->
+  <script>
+    var URL = 'http://localhost:8080/jcindustries/'
+
+    document.getElementById("loginbutton").onclick = () => {
+      console.log('I have been clicked');
+      let xhr = new XMLHttpRequest();
+      xhr.open("POST", URL + "app/login");
+      let employee = {};
+      employee.username = document.getElementById('empusername').value;
+      employee.password = document.getElementById('emppassword').value;
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            console.log('Success');
+            console.log('response: ' + xhr.responseText);
+            location.assign(URL + 'app/' + xhr.responseText);
+          }
+        }
+      };
+      xhr.send(JSON.stringify(employee));
+    };
+  </script>
+</body>
+
+</html>

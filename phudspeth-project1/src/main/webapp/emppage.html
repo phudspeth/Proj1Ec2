@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Employee Page</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+    <h1 name="hello" id="hello"></h1>
+    <div>
+        <button id="shownewrequest">New Request</button>
+        <button id="showviewrequests">View Request</button>
+        <button id="showviewprofile">View Profile</button>
+        <button id="showupdateprofile">Update Profile</button>
+    </div>
+    <div id="newrequest" style="display: none">
+        <input type="number" id="amount">
+        <textarea name="description" wrap="hard" rows="15" cols="50" id="desc"></textarea>
+        <select name="category" id="category">
+            <option value="1">Travel</option>
+            <option value="2">Training</option>
+            <option value="3">Medical</option>
+            <option value="4">Business</option>
+        </select>
+        <!--<input type="file" name="rec" accept="image/*" id="receipt">-->
+        <br>
+        <div>
+            <button id="sub">Submit</button>
+        </div>
+    </div>
+    <div id="viewrequests" style="display: none">
+        <table id="reqview">
+
+        </table>
+    </div>
+    <div id="viewprofile" style="display: none">
+        <table>
+            <tr>
+                <td id="profname"></td>
+            </tr>
+            <tr>
+                <td id="profusername"></td>
+            </tr>
+            <tr>
+                <td id="profpassword"></td>
+            </tr>
+            <tr>
+                <td id="profemail"></td>
+            </tr>
+        </table>
+    </div>
+    <div id="updateprofile" style="display: none">
+        <input type="text" id="upprofname">
+        <br>
+        <input type="text" id="upprofusername">
+        <br>
+        <input type="text" id="upprofpassword">
+        <br>
+        <input type="text" id="upprofemail">
+        <br>
+        <button id="profupdate">Update Profile</button>
+    </div>
+    <button name="logout" id="logout">Logout</button>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <script src="emppage.js"></script>
+    <script>
+        var URL = 'http://localhost:8080/jcindustries/'
+        var curUser = {};
+        var requests = [];
+        window.onload = getUser();
+
+        function getUser() {
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", URL + "app/getcuruser");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        let tempUser = JSON.parse(xhr.response);
+                        console.log(curUser);
+                        curUser.name = tempUser.name;
+                        curUser.password = tempUser.password;
+                        curUser.email = tempUser.email;
+                        curUser.username = tempUser.username;
+                        curUser.id = tempUser.id;
+                        document.getElementById("hello").innerHTML = "Hello " + curUser.name;
+                    }
+                }
+            };
+            xhr.send();
+            getRequests();
+        }
+        function getRequests() {
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", URL + "app/getemprequest");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        requests = JSON.parse(xhr.response);
+                        console.log(requests);
+                    }
+                }
+            };
+            xhr.send();
+        }
+        document.getElementById("logout").onclick = () => {
+            sessionStorage.clear();
+            console.log('I have been clicked');
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", URL + "app/login");
+            let employee = {};
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        location.assign(URL + 'app/login');
+                    }
+                }
+            };
+            xhr.send();
+        };
+
+        document.getElementById("shownewrequest").onclick = () => {
+            document.getElementById("newrequest").style.display = "block";
+            document.getElementById("viewprofile").style.display = "none";
+            document.getElementById("viewrequests").style.display = "none";
+            document.getElementById("updateprofile").style.display = "none";
+        };
+
+        document.getElementById("showviewprofile").onclick = () => {
+            document.getElementById("newrequest").style.display = "none";
+            document.getElementById("viewprofile").style.display = "block";
+            document.getElementById("viewrequests").style.display = "none";
+            document.getElementById("updateprofile").style.display = "none";
+            profileInfo();
+        }
+
+        document.getElementById("showviewrequests").onclick = () => {
+            document.getElementById("newrequest").style.display = "none";
+            document.getElementById("viewprofile").style.display = "none";
+            document.getElementById("viewrequests").style.display = "block";
+            document.getElementById("updateprofile").style.display = "none";
+            getRequests();
+            initTable();
+        }
+
+        document.getElementById("showupdateprofile").onclick = () => {
+            document.getElementById("newrequest").style.display = "none";
+            document.getElementById("viewprofile").style.display = "none";
+            document.getElementById("viewrequests").style.display = "none";
+            document.getElementById("updateprofile").style.display = "block";
+            upprofileInfo();
+        }
+
+        document.getElementById("profupdate").onclick = () => {
+            document.getElementById("newrequest").style.display = "none";
+            document.getElementById("viewprofile").style.display = "block";
+            document.getElementById("viewrequests").style.display = "none";
+            document.getElementById("updateprofile").style.display = "none";
+            curUser.name = document.getElementById("upprofname").value
+            curUser.username = document.getElementById("upprofusername").value;
+            curUser.password = document.getElementById("upprofpassword").value;
+            curUser.email = document.getElementById("upprofemail").value;
+            profileInfo();
+            sendProfileUpdate();
+        }
+
+        function upprofileInfo() {
+            document.getElementById("upprofname").value = curUser.name;
+            document.getElementById("upprofusername").value = curUser.username;
+            document.getElementById("upprofpassword").value = curUser.password;
+            document.getElementById("upprofemail").value = curUser.email;
+        }
+
+        function profileInfo() {
+            document.getElementById("profname").innerHTML = curUser.name;
+            document.getElementById("profusername").innerHTML = curUser.username;
+            document.getElementById("profpassword").innerHTML = curUser.password;
+            document.getElementById("profemail").innerHTML = curUser.email;
+        }
+
+        function sendProfileUpdate() {
+            let xhr = new XMLHttpRequest
+            xhr.open("POST", URL + "app/updateuser")
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+
+                    }
+                }
+            }
+            xhr.send(JSON.stringify(curUser));
+        }
+
+        function initTable() {
+            let reqCols = document.getElementsByClassName("reqCol");
+            while(reqCols.length > 0)
+            {
+                reqCols[0].parentNode.removeChild(reqCols[0]);
+            }
+
+            for (let request of requests) {
+                let newRow = document.createElement('tr');
+
+                let statusCol = document.createElement('td');
+                if (request.requestStatus == 1) {
+                    statusCol.innerText = "Pending";
+                }
+                if (request.requestStatus == 2) {
+                    statusCol.innerText = "Approved";
+                }
+                if (request.requestStatus == 3) {
+                    statusCol.innerText = "Rejected";
+                }
+                statusCol.className = "reqCol";
+                let amountCol = document.createElement('td');
+                amountCol.innerText = request.amount;
+                amountCol.className = "reqCol";
+                let catCol = document.createElement('td');
+                if (request.category == 1) {
+                    catCol.innerText = "Travel";
+                }
+                if (request.category == 2) {
+                    catCol.innerText = "Training";
+                }
+                if (request.category == 3) {
+                    catCol.innerText = "Medical";
+                }
+                if (request.category == 4) {
+                    catCol.innerText = "Business";
+                }
+                catCol.className = "reqCol";
+                newRow.appendChild(statusCol);
+                newRow.appendChild(amountCol);
+                newRow.appendChild(catCol);
+                document.getElementById("reqview").appendChild(newRow);
+            }
+        }
+
+        document.getElementById("sub").onclick = () => {
+            console.log('I have been clicked');
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", URL + "app/submitrequest");
+            let request = {};
+            request.description = document.getElementById('desc').value;
+            request.amount = document.getElementById('amount').value;
+            request.category = document.getElementById('category').value;
+            request.employeeID = curUser.id;
+            //request.receipt = document.getElementById('receipt').value;
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        console.log(request);
+                    }
+                }
+            };
+            xhr.send(JSON.stringify(request));
+            getRequests();
+        };
+
+    </script>
+</body>
+
+</html>

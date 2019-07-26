@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Manager Page</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+    <div>
+        <button id="showAllPending">Get All Pending Requests</button>
+        <button id="showAllEmployees">Show All Employees</button>
+        <button id="showAllApproved">Show All Approved Requests</button>
+        <button id="lookupByEmployee">Lookup Requests by Employee</button>
+        <button id="registerNewEmployee">Register New Employee</button>
+    </div>
+    <div id="newEmployee" style="display:none">
+        <input type="text" name="username" id="empusername" placeholder="Employee Username">
+        <br>
+        <input type="text" name="password" id="emppassword" placeholder="Employee Password">
+        <br>
+        <input type="text" name="name" id="empname" placeholder="Employee Name">
+        <br>
+        <button name="newemp" id="addemp">Add New Employee</button>
+        <button name="logout" id="logout">Logout</button>
+    </div>
+    <div id="allEmployees" style="display: none">
+        <table id="byEmpIDTable">
+
+        </table>
+    </div>
+    <div id="allApproved" style="display: none">
+        <table id="approvedTable">
+
+        </table>
+    </div>
+    <div id="allPending" style="display: none">
+        <table id="pendingTable">
+            <thead>
+                <td>Employee ID</td>
+                <td>Amount</td>
+                <td>Category</td>
+                <td>Description</td>
+            </thead>
+        </table>
+    </div>
+    <div id="byEmployee" style="display: none">
+        <header>Employee ID to Search by:</header>
+        <input type="text" id="byEmpID" placeholder="Employee ID">
+        <button id="byEmpIDButton">Find</button>
+        <table id="byEmpIDTable">
+
+        </table>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <!--<script type="text/javascript" src="managerpage.js"></script>-->
+    <script>
+        var URL = 'http://localhost:8080/jcindustries/'
+        var curUser = {};
+        var requests = [];
+
+        window.onload = getUser();
+
+        function getUser() {
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", URL + "app/getcuruser");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        curUser = JSON.parse(xhr.response);
+                        console.log(curUser);
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        document.getElementById("showAllPending").onclick = () => {
+            document.getElementById("allPending").style.display = "block";
+            document.getElementById("allEmployees").style.display = "none";
+            document.getElementById("allApproved").style.display = "none";
+            document.getElementById("byEmployee").style.display = "none";
+            document.getElementById("newEmployee").style.display = "none";
+            getPendingRequests();
+
+        };
+
+        document.getElementById("showAllEmployees").onclick = () => {
+            document.getElementById("allPending").style.display = "none";
+            document.getElementById("allEmployees").style.display = "block";
+            document.getElementById("allApproved").style.display = "none";
+            document.getElementById("byEmployee").style.display = "none";
+            document.getElementById("newEmployee").style.display = "none";
+        }
+        document.getElementById("showAllApproved").onclick = () => {
+            document.getElementById("allPending").style.display = "none";
+            document.getElementById("allEmployees").style.display = "none";
+            document.getElementById("allApproved").style.display = "block";
+            document.getElementById("byEmployee").style.display = "none";
+            document.getElementById("newEmployee").style.display = "none";
+            getApprovedRequests();
+            initApprovedTable();
+        }
+        document.getElementById("lookupByEmployee").onclick = () => {
+            document.getElementById("allPending").style.display = "none";
+            document.getElementById("allEmployees").style.display = "none";
+            document.getElementById("allApproved").style.display = "none";
+            document.getElementById("byEmployee").style.display = "block";
+            document.getElementById("newEmployee").style.display = "none";
+        }
+        document.getElementById("registerNewEmployee").onclick = () => {
+            document.getElementById("allPending").style.display = "none";
+            document.getElementById("allEmployees").style.display = "none";
+            document.getElementById("allApproved").style.display = "none";
+            document.getElementById("byEmployee").style.display = "none";
+            document.getElementById("newEmployee").style.display = "block";
+        }
+
+        document.getElementById("addemp").onclick = () => {
+            console.log('I have been clicked');
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", URL + "app/addemp");
+            let employee = {};
+            employee.username = document.getElementById('empusername').value;
+            employee.password = document.getElementById('emppassword').value;
+            employee.name = document.getElementById('empname').value;
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                    }
+                }
+            };
+            xhr.send(JSON.stringify(employee));
+        };
+
+        function initPendingTable() {
+            let penreqCols = document.getElementsByClassName("penreqCol");
+            while (penreqCols.length > 0) {
+                penreqCols[0].parentNode.removeChild(penreqCols[0]);
+            }
+
+            for (let request of requests) {
+            	console.log("Appending new row to pending table");
+                let newRow = document.createElement('tr');
+                let empIdCol = document.createElement('td');
+                empIdCol.innerText = request.employeeID;
+                empIdCol.className = "penreqCol";
+                let amountCol = document.createElement('td');
+                amountCol.innerText = request.amount;
+                amountCol.className = "penreqCol";
+                let catCol = document.createElement('td');
+                if (request.category == 1) {
+                    catCol.innerText = "Travel";
+                }
+                if (request.category == 2) {
+                    catCol.innerText = "Training";
+                }
+                if (request.category == 3) {
+                    catCol.innerText = "Medical";
+                }
+                if (request.category == 4) {
+                    catCol.innerText = "Business";
+                }
+                catCol.className = "penreqCol";
+                let descCol = document.createElement('td');
+                descCol.innerText = request.description;
+                descCol.className = "penreqCol";
+                let ticknumbCol = document.createElement('td');
+                ticknumbCol.innerText = request.ticketNumb;
+                ticknumbCol.className = "penreqCol";
+
+                newRow.appendChild(empIdCol);
+                newRow.appendChild(amountCol);
+                newRow.appendChild(catCol);
+                newRow.appendChild(descCol);
+                newRow.appendChild(ticknumbCol);
+                document.getElementById("pendingTable").appendChild(newRow);
+            }
+        }
+
+        function initByEmpTable() {
+            let penreqCols = document.getElementsByClassName("penreqCol");
+            while (penreqCols.length > 0) {
+                penreqCols[0].parentNode.removeChild(penreqCols[0]);
+            }
+
+            for (let request of requests) {
+                let newRow = document.createElement('tr');
+                let statusCol = document.createElement('td');
+                if (request.requestStatus == 1) {
+                    statusCol.innerText = "Pending";
+                }
+                if (request.requestStatus == 2) {
+                    statusCol.innerText = "Approved";
+                }
+                if (request.requestStatus == 3) {
+                    statusCol.innerText = "Rejected";
+                }
+                statusCol.className = "penreqCol";
+                let empIdCol = document.createElement('td');
+                empIdCol.innerText = request.employeeID;
+                empIdCol.className = "penreqCol";
+                let amountCol = document.createElement('td');
+                amountCol.innerText = request.amount;
+                amountCol.className = "penreqCol";
+                let catCol = document.createElement('td');
+                if (request.category == 1) {
+                    catCol.innerText = "Travel";
+                }
+                if (request.category == 2) {
+                    catCol.innerText = "Training";
+                }
+                if (request.category == 3) {
+                    catCol.innerText = "Medical";
+                }
+                if (request.category == 4) {
+                    catCol.innerText = "Business";
+                }
+                catCol.className = "penreqCol";
+                let descCol = document.createElement('td');
+                descCol.innerText = request.description;
+                descCol.className = "penreqCol";
+                let ticknumbCol = document.createElement('td');
+                ticknumbCol.innerText = request.ticketNumb;
+                ticknumbCol.className = "penreqCol";
+
+                newRow.appendChild(amountCol);
+                newRow.appendChild(catCol);
+                newRow.appendChild(descCol);
+                newRow.appendChild(ticknumbCol);
+                newRow.appendChild(statusCol);
+                document.getElementById("pendingTable").appendChild(newRow);
+            }
+        }
+
+        function initApprovedTable() {
+            let appreqCols = document.getElementsByClassName("appreqCol");
+            while (appreqCols.length > 0) {
+                appreqCols[0].parentNode.removeChild(appreqCols[0]);
+            }
+
+            for (let request of requests) {
+                let newRow = document.createElement('tr');
+                let empIdCol = document.createElement('td');
+                empIdCol.innerText = request.employeeID;
+                empIdCol.className = "appreqCol";
+                let amountCol = document.createElement('td');
+                amountCol.innerText = request.amount;
+                amountCol.className = "appreqCol";
+                let catCol = document.createElement('td');
+                if (request.category == 1) {
+                    catCol.innerText = "Travel";
+                }
+                if (request.category == 2) {
+                    catCol.innerText = "Training";
+                }
+                if (request.category == 3) {
+                    catCol.innerText = "Medical";
+                }
+                if (request.category == 4) {
+                    catCol.innerText = "Business";
+                }
+                catCol.className = "appreqCol";
+                let descCol = document.createElement('td');
+                descCol.innerText = request.description;
+                descCol.className = "appreqCol";
+                let appbyCol = document.createElement('td');
+                appbyCol.innerText = "Approved by: " + request.managerID;
+                appbyCol.className = "appreqCol";
+
+                newRow.appendChild(empIdCol);
+                newRow.appendChild(amountCol);
+                newRow.appendChild(catCol);
+                newRow.appendChild(descCol);
+                document.getElementById("approvedTable").appendChild(newRow);
+            }
+        }
+
+
+        function getApprovedRequests() {
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", URL + "app/getapprovedrequests");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        console.log('Success');
+                        console.log('response: ' + xhr.responseText);
+                        requests = JSON.parse(xhr.response);
+                        initApprovedTable();
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function getPendingRequests() {
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", URL + "app/getpendingrequests");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        console.log(xhr.response);
+                        let temprequests = JSON.parse(xhr.response);
+                        requests = temprequests;
+                        console.log(requests);
+                        initPendingTable();
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        document.getElementById("byEmpIDButton").onclick = () => {
+            getEmployeeRequests();
+        }
+
+        function getEmployeeRequests() {
+            let xhr = new XMLHttpRequest();
+            let employee = {};
+            employee.id = document.getElementById('byEmpID').value;
+            xhr.open("POST", URL + "app/getemprequests");
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        requests = JSON.parse(xhr.response);
+                        console.log(requests);
+                        initByEmpTable();
+                    }
+                }
+            };
+            xhr.send(JSON.stringify(employee));
+        }
+        document.getElementById("logout").onclick = () => {
+            sessionStorage.clear();
+            console.log('I have been clicked');
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", URL + "app/login");
+            let employee = {};
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        location.assign(URL + 'app/login');
+                    }
+                }
+            };
+            xhr.send();
+        };
+    </script>
+</body>
+
+</html>
